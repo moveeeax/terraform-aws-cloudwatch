@@ -19,6 +19,14 @@ resource "aws_cloudwatch_log_group" "this" {
 
   name              = var.log_group_name
   retention_in_days = var.log_retention_days
+  kms_key_id        = var.log_group_kms_key_id
 
   tags = var.tags
+
+  lifecycle {
+    precondition {
+      condition     = try(trimspace(var.log_group_name), "") != ""
+      error_message = "log_group_name must be set to a non-empty value when create_log_group is true."
+    }
+  }
 }
