@@ -1,6 +1,11 @@
 variable "alarm_name" {
   description = "Name of the CloudWatch metric alarm."
   type        = string
+
+  validation {
+    condition     = trimspace(var.alarm_name) != ""
+    error_message = "alarm_name must not be empty."
+  }
 }
 
 variable "comparison_operator" {
@@ -33,11 +38,21 @@ variable "evaluation_periods" {
 variable "metric_name" {
   description = "Name of the metric associated with the alarm."
   type        = string
+
+  validation {
+    condition     = trimspace(var.metric_name) != ""
+    error_message = "metric_name must not be empty."
+  }
 }
 
 variable "namespace" {
   description = "Namespace of the metric associated with the alarm."
   type        = string
+
+  validation {
+    condition     = trimspace(var.namespace) != ""
+    error_message = "namespace must not be empty."
+  }
 }
 
 variable "period" {
@@ -77,6 +92,11 @@ variable "alarm_actions" {
   description = "List of ARNs to notify when the alarm transitions into ALARM state."
   type        = list(string)
   default     = []
+
+  validation {
+    condition     = alltrue([for arn in var.alarm_actions : can(regex("^arn:[a-z0-9-]+:", arn))])
+    error_message = "Every entry in alarm_actions must be a valid ARN (arn:<partition>:...)."
+  }
 }
 
 variable "treat_missing_data" {

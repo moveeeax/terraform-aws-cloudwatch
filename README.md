@@ -55,6 +55,15 @@ A runnable example lives in [`examples/basic`](examples/basic).
   `LessThanLowerOrGreaterThanUpperThreshold`) — which require a
   `threshold_metric_id` instead — are rejected rather than silently producing an
   alarm that AWS will not accept.
+- **Required strings can't be blank.** `alarm_name`, `metric_name` and
+  `namespace` are rejected at plan time if they are empty or whitespace-only,
+  and every entry in `alarm_actions` must look like an ARN. This turns a
+  confusing AWS API error at apply time into a clear plan-time failure.
+- **Setting log group options without `create_log_group = true` is flagged.**
+  `log_group_name` and `log_group_kms_key_id` only take effect when
+  `create_log_group` is `true`; a `check` block warns at plan/apply time if
+  either is set while the log group itself is not being created, since that
+  combination is silently a no-op otherwise.
 
 ## Requirements
 

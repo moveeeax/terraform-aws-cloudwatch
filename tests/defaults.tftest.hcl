@@ -163,3 +163,90 @@ run "rejects_kms_key_alias_instead_of_arn" {
 
   expect_failures = [var.log_group_kms_key_id]
 }
+
+run "rejects_empty_alarm_name" {
+  command = plan
+
+  variables {
+    alarm_name = "   "
+  }
+
+  expect_failures = [var.alarm_name]
+}
+
+run "rejects_empty_metric_name" {
+  command = plan
+
+  variables {
+    metric_name = ""
+  }
+
+  expect_failures = [var.metric_name]
+}
+
+run "rejects_empty_namespace" {
+  command = plan
+
+  variables {
+    namespace = ""
+  }
+
+  expect_failures = [var.namespace]
+}
+
+run "rejects_malformed_alarm_action_arn" {
+  command = plan
+
+  variables {
+    alarm_actions = ["not-an-arn"]
+  }
+
+  expect_failures = [var.alarm_actions]
+}
+
+run "accepts_high_resolution_period" {
+  # 10-second periods are a valid high-resolution value distinct from the
+  # multiple-of-60 branch of the period validation; make sure that branch
+  # is actually exercised by a passing case, not just the rejection tests.
+  variables {
+    period = 10
+  }
+
+  assert {
+    condition     = aws_cloudwatch_metric_alarm.this.period == 10
+    error_message = "High-resolution period of 10 seconds should be accepted and passed through."
+  }
+}
+
+run "log_group_with_multiple_optional_settings_together" {
+  # Exercises create_log_group, a non-default retention, and a KMS key all
+  # set at once, rather than each in isolation as the earlier runs do.
+  variables {
+    create_log_group     = true
+    log_group_name       = "/test/combined"
+    log_retention_days   = 0
+    log_group_kms_key_id = "arn:aws:kms:us-east-1:111122223333:key/00000000-0000-0000-0000-000000000000"
+  }
+
+  assert {
+    condition     = aws_cloudwatch_log_group.this[0].retention_in_days == 0
+    error_message = "Explicit retain-forever retention (0) must be honored when combined with other log group settings."
+  }
+
+  assert {
+    condition     = aws_cloudwatch_log_group.this[0].kms_key_id == "arn:aws:kms:us-east-1:111122223333:key/00000000-0000-0000-0000-000000000000"
+    error_message = "KMS key must be honored when combined with other log group settings."
+  }
+}
+
+run "warns_when_log_group_settings_set_without_create_log_group" {
+  # create_log_group stays false while log_group_name is set: the setting
+  # would silently be ignored, which the check block should flag.
+  command = plan
+
+  variables {
+    log_group_name = "/test/ignored"
+  }
+
+  expect_failures = [check.log_group_settings_require_create_log_group]
+}

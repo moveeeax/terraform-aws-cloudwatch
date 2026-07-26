@@ -30,3 +30,10 @@ resource "aws_cloudwatch_log_group" "this" {
     }
   }
 }
+
+check "log_group_settings_require_create_log_group" {
+  assert {
+    condition     = var.create_log_group || (var.log_group_name == null && var.log_group_kms_key_id == null)
+    error_message = "log_group_name and/or log_group_kms_key_id are set but create_log_group is false, so they have no effect. Set create_log_group = true or remove these values."
+  }
+}
