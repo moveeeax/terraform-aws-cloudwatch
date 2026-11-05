@@ -119,3 +119,7 @@ Terraform >= 1.5.
 ## License
 
 [MIT](LICENSE)
+
+---
+
+**Archived on 2026-11-05.** one aws_cloudwatch_metric_alarm plus an unrelated optional log group is a subset of terraform-aws-modules/cloudwatch (metric-alarm, metrics-alarms-by-multiple-dimensions, composite-alarm, log-group, log-metric-filter submodules, 30M+ downloads); the plan-time validation is nice but not an angle. If kept, reshape it around the features below (alarm actions on every state, missing-data alerting).
